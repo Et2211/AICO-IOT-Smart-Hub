@@ -117,12 +117,15 @@ describe("updateDevice", () => {
 
 describe("deleteDevice", () => {
   it("removes the device successfully", () => {
+    vi.mocked(repo.findById).mockReturnValue(MOCK_DEVICE);
     vi.mocked(repo.remove).mockReturnValue(true);
     expect(() => deleteDevice("abc-123")).not.toThrow();
+    expect(repo.remove).toHaveBeenCalledWith("abc-123");
   });
 
   it("throws DeviceNotFoundError when device does not exist", () => {
-    vi.mocked(repo.remove).mockReturnValue(false);
+    vi.mocked(repo.findById).mockReturnValue(undefined);
     expect(() => deleteDevice("ghost")).toThrow(DeviceNotFoundError);
+    expect(repo.remove).not.toHaveBeenCalled();
   });
 });

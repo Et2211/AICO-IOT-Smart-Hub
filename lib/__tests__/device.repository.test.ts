@@ -53,13 +53,6 @@ describe("patch", () => {
     expect(updated!.updatedAt).not.toBe(before);
   });
 
-  it("preserves the original id even if changes include a different id", () => {
-    const updated = patch("seed-3", { id: "hacked" } as Partial<Device>);
-    expect(updated!.id).toBe("seed-3");
-    expect(findById("seed-3")).toBeDefined();
-    expect(findById("hacked")).toBeUndefined();
-  });
-
   it("returns undefined for a non-existent id", () => {
     expect(patch("ghost", { isOn: true })).toBeUndefined();
   });

@@ -40,3 +40,5 @@ export const UpdateDeviceSchema = z.object({
   config: z.record(z.string(), z.unknown()).optional(),
 });
 export type UpdateDeviceInput = z.infer<typeof UpdateDeviceSchema>;
+
+export type MutableDeviceFields = Pick<Device, "name" | "location" | "status" | "isOn" | "config">;

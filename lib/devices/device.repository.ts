@@ -1,4 +1,4 @@
-import { type Device } from "./device.types";
+import { type Device, type MutableDeviceFields } from "./device.types";
 
 const SEED_DEVICES: Device[] = [
   {
@@ -62,7 +62,7 @@ export function insert(device: Device): Device {
   return device;
 }
 
-export function patch(id: string, changes: Partial<Device>): Device | undefined {
+export function patch(id: string, changes: Partial<MutableDeviceFields>): Device | undefined {
   const existing = store.get(id);
   if (!existing) return undefined;
   const updated = { ...existing, ...changes, id, updatedAt: new Date().toISOString() };

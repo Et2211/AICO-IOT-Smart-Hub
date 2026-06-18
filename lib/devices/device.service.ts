@@ -40,7 +40,6 @@ export function createDevice(input: unknown): Device {
 }
 
 export function updateDevice(id: string, input: unknown): Device {
-  getDevice(id); // throws DeviceNotFoundError if missing
   const result = UpdateDeviceSchema.safeParse(input);
   if (!result.success) {
     throw new ValidationError("Invalid update data", formatZodErrors(result.error));
@@ -52,8 +51,8 @@ export function updateDevice(id: string, input: unknown): Device {
 }
 
 export function deleteDevice(id: string): void {
-  const deleted = repo.remove(id);
-  if (!deleted) throw new DeviceNotFoundError(id);
+  getDevice(id);
+  repo.remove(id);
 }
 
 function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
