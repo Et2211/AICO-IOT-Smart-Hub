@@ -61,6 +61,12 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
   ) as Partial<T>;
 }
 
+function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  ) as Partial<T>;
+}
+
 function formatZodErrors(error: ZodError): Record<string, string[]> {
   return error.issues.reduce<Record<string, string[]>>((acc, issue) => {
     const key = issue.path.join(".") || "_root";
