@@ -13,8 +13,8 @@ export async function handleList(): Promise<Response> {
 }
 
 export async function handleCreate(request: Request): Promise<Response> {
-  const body: unknown = await request.json();
   try {
+    const body: unknown = await request.json();
     const device = createDevice(body);
     return Response.json(device, { status: 201 });
   } catch (err) {
@@ -32,8 +32,8 @@ export async function handleGetOne(id: string): Promise<Response> {
 }
 
 export async function handleUpdate(id: string, request: Request): Promise<Response> {
-  const body: unknown = await request.json();
   try {
+    const body: unknown = await request.json();
     const device = updateDevice(id, body);
     return Response.json(device);
   } catch (err) {
@@ -51,6 +51,9 @@ export async function handleDelete(id: string): Promise<Response> {
 }
 
 function toErrorResponse(err: unknown): Response {
+  if (err instanceof SyntaxError) {
+    return Response.json({ error: "Malformed JSON in request body" }, { status: 400 });
+  }
   if (err instanceof DeviceNotFoundError) {
     return Response.json({ error: err.message }, { status: 404 });
   }
