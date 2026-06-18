@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { type Device, type DeviceType } from "@/lib/devices/device.types";
+import { type Device, type DeviceType, DeviceTypeSchema } from "@/lib/devices/device.types";
 import { FormField } from "@/components/molecules/FormField";
 import { Button } from "@/components/atoms/Button";
 import { Label } from "@/components/atoms/Label";
@@ -73,7 +73,10 @@ export function DeviceForm({
         <Select
           id="device-type"
           value={type}
-          onChange={(e) => setType(e.target.value as DeviceType)}
+          onChange={(e) => {
+            const parsed = DeviceTypeSchema.safeParse(e.target.value);
+            if (parsed.success) setType(parsed.data);
+          }}
         >
           {DEVICE_TYPES.map((t) => (
             <option key={t} value={t}>
