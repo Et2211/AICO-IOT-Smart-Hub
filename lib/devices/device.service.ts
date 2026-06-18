@@ -3,7 +3,6 @@ import * as repo from "./device.repository";
 import {
   type Device,
   type CreateDeviceInput,
-  type UpdateDeviceInput,
   CreateDeviceSchema,
   UpdateDeviceSchema,
 } from "./device.types";
@@ -46,7 +45,7 @@ export function updateDevice(id: string, input: unknown): Device {
   if (!result.success) {
     throw new ValidationError("Invalid update data", formatZodErrors(result.error));
   }
-  const data: UpdateDeviceInput = result.data;
+  const data = stripUndefined(result.data);
   const updated = repo.patch(id, data);
   if (!updated) throw new DeviceNotFoundError(id);
   return updated;
@@ -55,6 +54,12 @@ export function updateDevice(id: string, input: unknown): Device {
 export function deleteDevice(id: string): void {
   const deleted = repo.remove(id);
   if (!deleted) throw new DeviceNotFoundError(id);
+}
+
+function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  ) as Partial<T>;
 }
 
 function formatZodErrors(error: ZodError): Record<string, string[]> {

@@ -92,6 +92,15 @@ describe("updateDevice", () => {
     expect(result.isOn).toBe(false);
   });
 
+  it("does not pass undefined values through to the repository", () => {
+    vi.mocked(repo.findById).mockReturnValue(MOCK_DEVICE);
+    vi.mocked(repo.patch).mockReturnValue(MOCK_DEVICE);
+    updateDevice("abc-123", { name: undefined, isOn: true });
+    const patchArg = vi.mocked(repo.patch).mock.calls[0][1];
+    expect(patchArg).not.toHaveProperty("name");
+    expect(patchArg).toHaveProperty("isOn", true);
+  });
+
   it("throws DeviceNotFoundError when device does not exist", () => {
     vi.mocked(repo.findById).mockReturnValue(undefined);
     expect(() => updateDevice("ghost", { isOn: true })).toThrow(DeviceNotFoundError);
