@@ -75,6 +75,7 @@ describe("createDevice", () => {
   });
 
   it("includes field-level errors on ValidationError", () => {
+    expect.assertions(2);
     try {
       createDevice({});
     } catch (err) {
