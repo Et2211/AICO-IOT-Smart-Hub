@@ -1,16 +1,18 @@
-export class DeviceNotFoundError extends Error {
-  constructor(id: string) {
-    super(`Device with id "${id}" not found`);
-    this.name = "DeviceNotFoundError";
-  }
+export type AppError =
+  | { kind: "not_found"; message: string }
+  | { kind: "validation"; message: string; fields: Record<string, string[]> };
+
+export function notFound(id: string): AppError {
+  return { kind: "not_found", message: `Device with id "${id}" not found` };
 }
 
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public readonly fields?: Record<string, string[]>
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
+export function validationError(
+  message: string,
+  fields: Record<string, string[]>
+): AppError {
+  return { kind: "validation", message, fields };
+}
+
+export function isAppError(err: unknown): err is AppError {
+  return typeof err === "object" && err !== null && "kind" in err;
 }
