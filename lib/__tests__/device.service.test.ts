@@ -80,7 +80,9 @@ describe("createDevice", () => {
       createDevice({});
     } catch (err) {
       expect(err).toBeInstanceOf(ValidationError);
-      expect((err as ValidationError).fields).toHaveProperty("name");
+      if (err instanceof ValidationError) {
+        expect(err.fields).toHaveProperty("name");
+      }
     }
   });
 });
