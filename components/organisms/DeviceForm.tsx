@@ -5,6 +5,8 @@ import { type Device, type DeviceType } from "@/lib/devices/device.types";
 import { FormField } from "@/components/molecules/FormField";
 import { Button } from "@/components/atoms/Button";
 import { Label } from "@/components/atoms/Label";
+import { Select } from "@/components/atoms/Select";
+import { deviceTypeLabels } from "@/styles/variants";
 
 const DEVICE_TYPES: DeviceType[] = ["light", "thermostat", "camera", "lock", "sensor"];
 
@@ -68,18 +70,17 @@ export function DeviceForm({
 
       <div className="flex flex-col gap-1">
         <Label htmlFor="device-type">Device Type</Label>
-        <select
+        <Select
           id="device-type"
           value={type}
           onChange={(e) => setType(e.target.value as DeviceType)}
-          className="block w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm capitalize outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-500"
         >
           {DEVICE_TYPES.map((t) => (
-            <option key={t} value={t} className="capitalize">
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+            <option key={t} value={t}>
+              {deviceTypeLabels[t]}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <FormField
