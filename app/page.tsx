@@ -63,10 +63,11 @@ export default function DashboardPage() {
 
   async function handleEdit(data: { name: string; type: DeviceType; location: string }) {
     if (modal?.type !== "edit") return;
+    const { name, location } = data;
     const res = await fetch(`/api/devices/${modal.device.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ name, location }),
     });
     if (!res.ok) throw new Error("Failed to update device");
     setModal(null);
@@ -74,17 +75,19 @@ export default function DashboardPage() {
   }
 
   async function handleToggle(id: string, isOn: boolean) {
-    await fetch(`/api/devices/${id}`, {
+    const res = await fetch(`/api/devices/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isOn }),
     });
+    if (!res.ok) setError("Failed to toggle device");
     refresh();
   }
 
   async function handleDelete() {
     if (modal?.type !== "delete") return;
-    await fetch(`/api/devices/${modal.device.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/devices/${modal.device.id}`, { method: "DELETE" });
+    if (!res.ok) setError("Failed to delete device");
     setModal(null);
     refresh();
   }

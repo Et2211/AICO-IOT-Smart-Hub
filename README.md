@@ -96,7 +96,7 @@ npm test           # run once
 npm run test:watch # watch mode
 ```
 
-12 unit tests cover the service layer using Vitest module mocking — no HTTP involved.
+22 unit tests cover the service and repository layers using Vitest module mocking — no HTTP involved.
 
 ## Pre-commit hooks
 
