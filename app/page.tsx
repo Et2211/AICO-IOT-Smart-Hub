@@ -1,65 +1,161 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { type Device, type DeviceType } from "@/lib/devices/device.types";
+import { DeviceList } from "@/components/organisms/DeviceList";
+import { DeviceForm } from "@/components/organisms/DeviceForm";
+import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
+import { Button } from "@/components/atoms/Button";
+
+type Modal =
+  | { type: "create" }
+  | { type: "edit"; device: Device }
+  | { type: "delete"; device: Device }
+  | null;
+
+export default function DashboardPage() {
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [modal, setModal] = useState<Modal>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      if (active) setLoading(true);
+      try {
+        const res = await fetch("/api/devices");
+        if (!res.ok) throw new Error("Failed to load devices");
+        const data: Device[] = await res.json();
+        if (active) {
+          setDevices(data);
+          setError(null);
+        }
+      } catch {
+        if (active) setError("Could not load devices. Is the server running?");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [refreshKey]);
+
+  function refresh() {
+    setRefreshKey((k) => k + 1);
+  }
+
+  async function handleCreate(data: { name: string; type: DeviceType; location: string }) {
+    const res = await fetch("/api/devices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to create device");
+    setModal(null);
+    refresh();
+  }
+
+  async function handleEdit(data: { name: string; type: DeviceType; location: string }) {
+    if (modal?.type !== "edit") return;
+    const { name, location } = data;
+    const res = await fetch(`/api/devices/${modal.device.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, location }),
+    });
+    if (!res.ok) throw new Error("Failed to update device");
+    setModal(null);
+    refresh();
+  }
+
+  async function handleToggle(id: string, isOn: boolean) {
+    const res = await fetch(`/api/devices/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isOn }),
+    });
+    if (!res.ok) setError("Failed to toggle device");
+    refresh();
+  }
+
+  async function handleDelete() {
+    if (modal?.type !== "delete") return;
+    const res = await fetch(`/api/devices/${modal.device.id}`, { method: "DELETE" });
+    if (!res.ok) setError("Failed to delete device");
+    setModal(null);
+    refresh();
+  }
+
+  const onlineCount = devices.filter((d) => d.status === "online").length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              AICO Smart Hub
+            </h1>
+            {!loading && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {devices.length} device{devices.length !== 1 ? "s" : ""} &middot; {onlineCount} online
+              </p>
+            )}
+          </div>
+          <Button onClick={() => setModal({ type: "create" })}>+ Add Device</Button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        ) : (
+          <DeviceList
+            devices={devices}
+            loading={loading}
+            onToggle={handleToggle}
+            onEdit={(device) => setModal({ type: "edit", device })}
+            onDelete={(device) => setModal({ type: "delete", device })}
+          />
+        )}
       </main>
+
+      {(modal?.type === "create" || modal?.type === "edit") && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setModal(null)}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+              {modal.type === "create" ? "Add New Device" : "Edit Device"}
+            </h2>
+            <DeviceForm
+              initialValues={modal.type === "edit" ? modal.device : undefined}
+              onSubmit={modal.type === "create" ? handleCreate : handleEdit}
+              onCancel={() => setModal(null)}
+              submitLabel={modal.type === "create" ? "Add Device" : "Save Changes"}
+            />
+          </div>
+        </div>
+      )}
+
+      {modal?.type === "delete" && (
+        <ConfirmDialog
+          title="Delete Device"
+          message={`Are you sure you want to delete "${modal.device.name}"? This cannot be undone.`}
+          onConfirm={handleDelete}
+          onCancel={() => setModal(null)}
+        />
+      )}
     </div>
   );
 }

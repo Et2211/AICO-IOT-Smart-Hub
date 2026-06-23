@@ -26,8 +26,11 @@ export function DeviceCard({ device, onToggle, onEdit, onDelete }: DeviceCardPro
 
   async function handleToggle() {
     setToggling(true);
-    await onToggle(device.id, !device.isOn);
-    setToggling(false);
+    try {
+      await onToggle(device.id, !device.isOn);
+    } finally {
+      setToggling(false);
+    }
   }
 
   return (
