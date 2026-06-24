@@ -9,8 +9,8 @@ const SEED_DEVICES: Device[] = [
     status: "online",
     isOn: true,
     config: { brightness: 80, colorTemp: 3000 },
-    createdAt: new Date("2026-01-01T10:00:00Z").toISOString(),
-    updatedAt: new Date("2026-01-01T10:00:00Z").toISOString(),
+    createdAt: new Date("2025-01-01T10:00:00Z").toISOString(),
+    updatedAt: new Date("2025-01-01T10:00:00Z").toISOString(),
   },
   {
     id: "seed-2",
@@ -20,8 +20,8 @@ const SEED_DEVICES: Device[] = [
     status: "online",
     isOn: true,
     config: { targetTemp: 21, mode: "heat" },
-    createdAt: new Date("2026-01-01T10:00:00Z").toISOString(),
-    updatedAt: new Date("2026-01-01T10:00:00Z").toISOString(),
+    createdAt: new Date("2025-01-01T10:00:00Z").toISOString(),
+    updatedAt: new Date("2025-01-01T10:00:00Z").toISOString(),
   },
   {
     id: "seed-3",
@@ -31,8 +31,8 @@ const SEED_DEVICES: Device[] = [
     status: "online",
     isOn: true,
     config: { resolution: "1080p", motionDetection: true },
-    createdAt: new Date("2026-01-01T10:00:00Z").toISOString(),
-    updatedAt: new Date("2026-01-01T10:00:00Z").toISOString(),
+    createdAt: new Date("2025-01-01T10:00:00Z").toISOString(),
+    updatedAt: new Date("2025-01-01T10:00:00Z").toISOString(),
   },
   {
     id: "seed-4",
@@ -42,12 +42,16 @@ const SEED_DEVICES: Device[] = [
     status: "offline",
     isOn: false,
     config: { autoLock: true, autoLockDelay: 30 },
-    createdAt: new Date("2026-01-01T10:00:00Z").toISOString(),
-    updatedAt: new Date("2026-01-01T10:00:00Z").toISOString(),
+    createdAt: new Date("2025-01-01T10:00:00Z").toISOString(),
+    updatedAt: new Date("2025-01-01T10:00:00Z").toISOString(),
   },
 ];
 
-const store = new Map<string, Device>(SEED_DEVICES.map((d) => [d.id, d]));
+let store = new Map<string, Device>(SEED_DEVICES.map((d) => [d.id, d]));
+
+export function _resetForTesting(): void {
+  store = new Map(SEED_DEVICES.map((d) => [d.id, d]));
+}
 
 export function findAll(): Device[] {
   return Array.from(store.values());

@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { type Device } from "../devices/device.types";
-import { findAll, findById, insert, patch, remove } from "../devices/device.repository";
+import { findAll, findById, insert, patch, remove, _resetForTesting } from "../devices/device.repository";
+
+beforeEach(() => {
+  _resetForTesting();
+});
 
 describe("seed data", () => {
   it("starts with 4 pre-seeded devices", () => {
@@ -30,8 +34,8 @@ describe("insert", () => {
       status: "offline",
       isOn: false,
       config: {},
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z",
+      createdAt: "2025-01-01T00:00:00.000Z",
+      updatedAt: "2025-01-01T00:00:00.000Z",
     };
     const result = insert(device);
     expect(result).toEqual(device);

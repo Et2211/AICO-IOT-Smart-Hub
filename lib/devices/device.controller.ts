@@ -5,7 +5,7 @@ import {
   updateDevice,
   deleteDevice,
 } from "./device.service";
-import { isAppError } from "./errors";
+import { DeviceNotFoundError, ValidationError } from "./errors";
 
 export async function handleList(): Promise<Response> {
   const devices = listDevices();
@@ -54,11 +54,11 @@ function toErrorResponse(err: unknown): Response {
   if (err instanceof SyntaxError) {
     return Response.json({ error: "Malformed JSON in request body" }, { status: 400 });
   }
-  if (!isAppError(err)) {
-    return Response.json({ error: "Internal server error" }, { status: 500 });
-  }
-  if (err.kind === "not_found") {
+  if (err instanceof DeviceNotFoundError) {
     return Response.json({ error: err.message }, { status: 404 });
   }
-  return Response.json({ error: err.message, fields: err.fields }, { status: 422 });
+  if (err instanceof ValidationError) {
+    return Response.json({ error: err.message, fields: err.fields }, { status: 422 });
+  }
+  return Response.json({ error: "Internal server error" }, { status: 500 });
 }

@@ -5,6 +5,7 @@ import { type Device, type DeviceType } from "@/lib/devices/device.types";
 import { DeviceList } from "@/components/organisms/DeviceList";
 import { DeviceForm } from "@/components/organisms/DeviceForm";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
+import { Modal } from "@/components/molecules/Modal";
 import { Button } from "@/components/atoms/Button";
 
 type Modal =
@@ -51,30 +52,39 @@ export default function DashboardPage() {
   }
 
   async function handleCreate(data: { name: string; type: DeviceType; location: string }) {
+    setError(null);
     const res = await fetch("/api/devices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Failed to create device");
+    if (!res.ok) {
+      setError("Failed to create device");
+      return;
+    }
     setModal(null);
     refresh();
   }
 
   async function handleEdit(data: { name: string; type: DeviceType; location: string }) {
     if (modal?.type !== "edit") return;
+    setError(null);
     const { name, location } = data;
     const res = await fetch(`/api/devices/${modal.device.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, location }),
     });
-    if (!res.ok) throw new Error("Failed to update device");
+    if (!res.ok) {
+      setError("Failed to update device");
+      return;
+    }
     setModal(null);
     refresh();
   }
 
   async function handleToggle(id: string, isOn: boolean) {
+    setError(null);
     const res = await fetch(`/api/devices/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -86,6 +96,7 @@ export default function DashboardPage() {
 
   async function handleDelete() {
     if (modal?.type !== "delete") return;
+    setError(null);
     const res = await fetch(`/api/devices/${modal.device.id}`, { method: "DELETE" });
     if (!res.ok) setError("Failed to delete device");
     setModal(null);
@@ -113,28 +124,30 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8">
-        {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-            {error}
+        {error && (
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <span>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-4 text-red-500 hover:text-red-700 dark:hover:text-red-300"
+              aria-label="Dismiss error"
+            >
+              &times;
+            </button>
           </div>
-        ) : (
-          <DeviceList
-            devices={devices}
-            loading={loading}
-            onToggle={handleToggle}
-            onEdit={(device) => setModal({ type: "edit", device })}
-            onDelete={(device) => setModal({ type: "delete", device })}
-          />
         )}
+        <DeviceList
+          devices={devices}
+          loading={loading}
+          onToggle={handleToggle}
+          onEdit={(device) => setModal({ type: "edit", device })}
+          onDelete={(device) => setModal({ type: "delete", device })}
+        />
       </main>
 
-      {(modal?.type === "create" || modal?.type === "edit") && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setModal(null)}
-          />
-          <div className="relative z-10 w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+      <Modal open={modal?.type === "create" || modal?.type === "edit"} onClose={() => setModal(null)}>
+        {(modal?.type === "create" || modal?.type === "edit") && (
+          <>
             <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
               {modal.type === "create" ? "Add New Device" : "Edit Device"}
             </h2>
@@ -143,10 +156,11 @@ export default function DashboardPage() {
               onSubmit={modal.type === "create" ? handleCreate : handleEdit}
               onCancel={() => setModal(null)}
               submitLabel={modal.type === "create" ? "Add Device" : "Save Changes"}
+              isEditing={modal.type === "edit"}
             />
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {modal?.type === "delete" && (
         <ConfirmDialog

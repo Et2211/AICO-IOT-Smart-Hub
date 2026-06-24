@@ -6,7 +6,7 @@ import {
   CreateDeviceSchema,
   UpdateDeviceSchema,
 } from "./device.types";
-import { notFound, validationError } from "./errors";
+import { DeviceNotFoundError, ValidationError } from "./errors";
 
 export function listDevices(): Device[] {
   return repo.findAll();
@@ -14,14 +14,14 @@ export function listDevices(): Device[] {
 
 export function getDevice(id: string): Device {
   const device = repo.findById(id);
-  if (!device) throw notFound(id);
+  if (!device) throw new DeviceNotFoundError(id);
   return device;
 }
 
 export function createDevice(input: unknown): Device {
   const result = CreateDeviceSchema.safeParse(input);
   if (!result.success) {
-    throw validationError("Invalid device data", formatZodErrors(result.error));
+    throw new ValidationError("Invalid device data", formatZodErrors(result.error));
   }
   const data: CreateDeviceInput = result.data;
   const now = new Date().toISOString();
@@ -42,17 +42,16 @@ export function createDevice(input: unknown): Device {
 export function updateDevice(id: string, input: unknown): Device {
   const result = UpdateDeviceSchema.safeParse(input);
   if (!result.success) {
-    throw validationError("Invalid update data", formatZodErrors(result.error));
+    throw new ValidationError("Invalid update data", formatZodErrors(result.error));
   }
   const data = stripUndefined(result.data);
   const updated = repo.patch(id, data);
-  if (!updated) throw notFound(id);
+  if (!updated) throw new DeviceNotFoundError(id);
   return updated;
 }
 
 export function deleteDevice(id: string): void {
-  getDevice(id);
-  repo.remove(id);
+  if (!repo.remove(id)) throw new DeviceNotFoundError(id);
 }
 
 function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
