@@ -110,7 +110,12 @@ npm run test:watch # watch mode
 
 ## Pre-commit hooks
 
-Husky runs `lint-staged` on every commit: ESLint (zero warnings) + `tsc --noEmit`. There is no way to skip this — use `git commit` normally.
+[Husky](https://typicode.github.io/husky/) is a Git hooks manager that runs automated checks before each commit is accepted. This project uses it with `lint-staged` to gate every commit behind two checks:
+
+1. **ESLint** (zero warnings tolerance) — catches code quality and style issues
+2. **`tsc --noEmit`** — catches type errors without producing build output
+
+Only staged `.ts` and `.tsx` files are checked, so commits stay fast. If either check fails, the commit is rejected and you'll need to fix the issues before trying again.
 
 ## Assumptions
 
