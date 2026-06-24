@@ -146,6 +146,16 @@ When migrating to a real database, note that `updateDevice` and `deleteDevice` s
 
 - Route Handlers are stateless, so horizontal scaling is free once storage is externalised
 - Add Redis for ephemeral device state (last-seen, session tokens) separate from durable Postgres records
-- For real-time device status updates, replace polling with Server-Sent Events or a managed WebSocket service (Pusher, Ably)
-- An MQTT broker (AWS IoT Core, HiveMQ) would be the standard choice for device-to-cloud communication at scale
 - Add `?page=` / `?limit=` pagination to the list endpoint before the device count grows large
+
+### Real-time device communication
+
+The current demo uses REST for everything: the dashboard polls `GET /api/devices` and devices would update their status via `PATCH`. In production, these are three separate communication channels:
+
+1. Device to cloud (MQTT): Physical devices publish status updates to an MQTT broker (e.g. AWS IoT Core, HiveMQ) on topics like `home/living-room/light/status`. MQTT is a lightweight pub/sub protocol designed for constrained devices on unreliable networks. A backend subscriber listens for these messages and writes state changes to the database.
+
+2. Cloud to dashboard (SSE or WebSocket): The dashboard subscribes to a Server-Sent Events endpoint or WebSocket connection to receive live updates as device state changes. This replaces polling and gives instant feedback when a device goes online/offline or changes state.
+
+3. Dashboard to cloud (REST): User-initiated commands (turn on a light, change thermostat target) still go through the REST API. The API publishes a command to the MQTT broker on a device-specific topic (e.g. `home/living-room/light/command`), and the device picks it up.
+
+This separation means the REST API acts as the control plane for user actions, while MQTT handles the high-frequency, low-latency device communication. The dashboard never talks to devices directly.
