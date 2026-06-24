@@ -17,6 +17,7 @@ import {
   deleteDevice,
 } from "../devices/device.service";
 import { type Device } from "../devices/device.types";
+import { DeviceNotFoundError, ValidationError } from "../devices/errors";
 
 const MOCK_DEVICE: Device = {
   id: "abc-123",
@@ -29,15 +30,6 @@ const MOCK_DEVICE: Device = {
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
-
-function catchThrown(fn: () => unknown): unknown {
-  try {
-    fn();
-    return null;
-  } catch (e) {
-    return e;
-  }
-}
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -56,9 +48,9 @@ describe("getDevice", () => {
     expect(getDevice("abc-123")).toEqual(MOCK_DEVICE);
   });
 
-  it("throws a not_found error when device does not exist", () => {
+  it("throws DeviceNotFoundError when device does not exist", () => {
     vi.mocked(repo.findById).mockReturnValue(undefined);
-    expect(catchThrown(() => getDevice("ghost"))).toMatchObject({ kind: "not_found" });
+    expect(() => getDevice("ghost")).toThrow(DeviceNotFoundError);
   });
 });
 
@@ -72,23 +64,24 @@ describe("createDevice", () => {
     expect(repo.insert).toHaveBeenCalledOnce();
   });
 
-  it("throws a validation error for missing name", () => {
-    expect(catchThrown(() => createDevice({ type: "light", location: "Hall" }))).toMatchObject({
-      kind: "validation",
-    });
+  it("throws ValidationError for missing name", () => {
+    expect(() => createDevice({ type: "light", location: "Hall" })).toThrow(ValidationError);
   });
 
-  it("throws a validation error for invalid device type", () => {
-    expect(
-      catchThrown(() => createDevice({ name: "Oven", type: "microwave", location: "Kitchen" }))
-    ).toMatchObject({ kind: "validation" });
+  it("throws ValidationError for invalid device type", () => {
+    expect(() =>
+      createDevice({ name: "Oven", type: "microwave", location: "Kitchen" })
+    ).toThrow(ValidationError);
   });
 
-  it("includes field-level errors on validation error", () => {
-    expect(catchThrown(() => createDevice({}))).toMatchObject({
-      kind: "validation",
-      fields: expect.objectContaining({ name: expect.any(Array) }),
-    });
+  it("includes field-level errors on ValidationError", () => {
+    try {
+      createDevice({});
+      expect.unreachable("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ValidationError);
+      expect((err as ValidationError).fields).toHaveProperty("name");
+    }
   });
 });
 
@@ -109,32 +102,25 @@ describe("updateDevice", () => {
     expect(patchArg).toHaveProperty("isOn", true);
   });
 
-  it("throws a not_found error when device does not exist", () => {
-    vi.mocked(repo.findById).mockReturnValue(undefined);
-    expect(catchThrown(() => updateDevice("ghost", { isOn: true }))).toMatchObject({
-      kind: "not_found",
-    });
+  it("throws DeviceNotFoundError when device does not exist", () => {
+    vi.mocked(repo.patch).mockReturnValue(undefined);
+    expect(() => updateDevice("ghost", { isOn: true })).toThrow(DeviceNotFoundError);
   });
 
-  it("throws a validation error for invalid status value", () => {
-    vi.mocked(repo.findById).mockReturnValue(MOCK_DEVICE);
-    expect(catchThrown(() => updateDevice("abc-123", { status: "broken" }))).toMatchObject({
-      kind: "validation",
-    });
+  it("throws ValidationError for invalid status value", () => {
+    expect(() => updateDevice("abc-123", { status: "broken" })).toThrow(ValidationError);
   });
 });
 
 describe("deleteDevice", () => {
   it("removes the device successfully", () => {
-    vi.mocked(repo.findById).mockReturnValue(MOCK_DEVICE);
     vi.mocked(repo.remove).mockReturnValue(true);
     expect(() => deleteDevice("abc-123")).not.toThrow();
     expect(repo.remove).toHaveBeenCalledWith("abc-123");
   });
 
-  it("throws a not_found error when device does not exist", () => {
-    vi.mocked(repo.findById).mockReturnValue(undefined);
-    expect(catchThrown(() => deleteDevice("ghost"))).toMatchObject({ kind: "not_found" });
-    expect(repo.remove).not.toHaveBeenCalled();
+  it("throws DeviceNotFoundError when device does not exist", () => {
+    vi.mocked(repo.remove).mockReturnValue(false);
+    expect(() => deleteDevice("ghost")).toThrow(DeviceNotFoundError);
   });
 });

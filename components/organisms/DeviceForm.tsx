@@ -21,6 +21,7 @@ interface DeviceFormProps {
   onSubmit: (data: { name: string; type: DeviceType; location: string }) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
+  isEditing?: boolean;
 }
 
 export function DeviceForm({
@@ -28,6 +29,7 @@ export function DeviceForm({
   onSubmit,
   onCancel,
   submitLabel = "Add Device",
+  isEditing = false,
 }: DeviceFormProps) {
   const [name, setName] = useState(initialValues?.name ?? "");
   const [location, setLocation] = useState(initialValues?.location ?? "");
@@ -73,6 +75,7 @@ export function DeviceForm({
         <Select
           id="device-type"
           value={type}
+          disabled={isEditing}
           onChange={(e) => {
             const parsed = DeviceTypeSchema.safeParse(e.target.value);
             if (parsed.success) setType(parsed.data);
