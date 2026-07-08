@@ -5,6 +5,7 @@ import { type Device } from "@/lib/devices/device.types";
 import { Badge } from "@/components/atoms/Badge";
 import { StatusDot } from "@/components/atoms/StatusDot";
 import { Button } from "@/components/atoms/Button";
+import { Toggle } from "@/components/atoms/Toggle";
 
 const DEVICE_ICONS: Record<string, string> = {
   light: "💡",
@@ -50,20 +51,12 @@ export function DeviceCard({ device, onToggle, onEdit, onDelete }: DeviceCardPro
 
       <div className="flex items-center justify-between">
         <StatusDot status={device.status} />
-        <button
-          onClick={handleToggle}
+        <Toggle
+          checked={device.isOn}
+          onChange={handleToggle}
           disabled={toggling || device.status === "offline"}
-          aria-label={device.isOn ? "Turn off" : "Turn on"}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-            device.isOn ? "bg-zinc-900 dark:bg-white" : "bg-zinc-200 dark:bg-zinc-700"
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform dark:bg-zinc-900 ${
-              device.isOn ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+          ariaLabel={device.isOn ? "Turn off" : "Turn on"}
+        />
       </div>
 
       <div className="flex gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
