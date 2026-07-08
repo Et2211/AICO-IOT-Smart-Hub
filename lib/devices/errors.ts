@@ -23,3 +23,16 @@ export type AppError = DeviceNotFoundError | ValidationError;
 export function isAppError(err: unknown): err is AppError {
   return err instanceof DeviceNotFoundError || err instanceof ValidationError;
 }
+
+export function toErrorResponse(err: unknown): Response {
+  if (err instanceof SyntaxError) {
+    return Response.json({ error: "Malformed JSON in request body" }, { status: 400 });
+  }
+  if (err instanceof DeviceNotFoundError) {
+    return Response.json({ error: err.message }, { status: 404 });
+  }
+  if (err instanceof ValidationError) {
+    return Response.json({ error: err.message, fields: err.fields }, { status: 422 });
+  }
+  return Response.json({ error: "Internal server error" }, { status: 500 });
+}

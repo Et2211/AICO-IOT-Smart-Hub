@@ -8,13 +8,12 @@ vi.mock("../devices/device.service", () => ({
   deleteDevice: vi.fn(),
 }));
 
+import { GET as listRoute, POST as createRoute } from "../../app/api/devices/route";
 import {
-  handleList,
-  handleCreate,
-  handleGetOne,
-  handleUpdate,
-  handleDelete,
-} from "../devices/device.controller";
+  GET as getRoute,
+  PATCH as updateRoute,
+  DELETE as deleteRoute,
+} from "../../app/api/devices/[id]/route";
 import * as service from "../devices/device.service";
 import { type Device } from "../devices/device.types";
 import { DeviceNotFoundError, ValidationError } from "../devices/errors";
@@ -31,9 +30,9 @@ const MOCK_DEVICE: Device = {
   updatedAt: "2025-01-01T00:00:00.000Z",
 };
 
-function jsonRequest(body: unknown): Request {
+function jsonRequest(body: unknown, method = "POST"): Request {
   return new Request("http://localhost/api/devices", {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -47,31 +46,34 @@ function malformedRequest(): Request {
   });
 }
 
+function ctx(id: string): RouteContext<"/api/devices/[id]"> {
+  return { params: Promise.resolve({ id }) };
+}
+
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
-describe("handleList", () => {
+describe("GET /api/devices", () => {
   it("returns 200 with all devices", async () => {
     vi.mocked(service.listDevices).mockReturnValue([MOCK_DEVICE]);
-    const res = await handleList();
+    const res = await listRoute();
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body).toEqual([MOCK_DEVICE]);
+    expect(await res.json()).toEqual([MOCK_DEVICE]);
   });
 
   it("returns 200 with empty array when no devices", async () => {
     vi.mocked(service.listDevices).mockReturnValue([]);
-    const res = await handleList();
+    const res = await listRoute();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
 });
 
-describe("handleCreate", () => {
+describe("POST /api/devices", () => {
   it("returns 201 with the created device", async () => {
     vi.mocked(service.createDevice).mockReturnValue(MOCK_DEVICE);
-    const res = await handleCreate(jsonRequest({ name: "Test", type: "light", location: "Room" }));
+    const res = await createRoute(jsonRequest({ name: "Test", type: "light", location: "Room" }));
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual(MOCK_DEVICE);
   });
@@ -80,7 +82,7 @@ describe("handleCreate", () => {
     vi.mocked(service.createDevice).mockImplementation(() => {
       throw new ValidationError("Invalid", { name: ["Required"] });
     });
-    const res = await handleCreate(jsonRequest({}));
+    const res = await createRoute(jsonRequest({}));
     expect(res.status).toBe(422);
     const body = await res.json();
     expect(body.error).toBe("Invalid");
@@ -88,26 +90,25 @@ describe("handleCreate", () => {
   });
 
   it("returns 400 for malformed JSON", async () => {
-    const res = await handleCreate(malformedRequest());
+    const res = await createRoute(malformedRequest());
     expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/malformed/i);
+    expect((await res.json()).error).toMatch(/malformed/i);
   });
 
   it("returns 500 for unexpected errors", async () => {
     vi.mocked(service.createDevice).mockImplementation(() => {
       throw new TypeError("something broke");
     });
-    const res = await handleCreate(jsonRequest({ name: "Test" }));
+    const res = await createRoute(jsonRequest({ name: "Test" }));
     expect(res.status).toBe(500);
     expect((await res.json()).error).toBe("Internal server error");
   });
 });
 
-describe("handleGetOne", () => {
+describe("GET /api/devices/:id", () => {
   it("returns 200 with the device", async () => {
     vi.mocked(service.getDevice).mockReturnValue(MOCK_DEVICE);
-    const res = await handleGetOne("abc-123");
+    const res = await getRoute(new Request("http://localhost"), ctx("abc-123"));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(MOCK_DEVICE);
   });
@@ -116,17 +117,17 @@ describe("handleGetOne", () => {
     vi.mocked(service.getDevice).mockImplementation(() => {
       throw new DeviceNotFoundError("ghost");
     });
-    const res = await handleGetOne("ghost");
+    const res = await getRoute(new Request("http://localhost"), ctx("ghost"));
     expect(res.status).toBe(404);
     expect((await res.json()).error).toMatch(/ghost/);
   });
 });
 
-describe("handleUpdate", () => {
+describe("PATCH /api/devices/:id", () => {
   it("returns 200 with the updated device", async () => {
     const updated = { ...MOCK_DEVICE, isOn: false };
     vi.mocked(service.updateDevice).mockReturnValue(updated);
-    const res = await handleUpdate("abc-123", jsonRequest({ isOn: false }));
+    const res = await updateRoute(jsonRequest({ isOn: false }, "PATCH"), ctx("abc-123"));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(updated);
   });
@@ -135,7 +136,7 @@ describe("handleUpdate", () => {
     vi.mocked(service.updateDevice).mockImplementation(() => {
       throw new DeviceNotFoundError("ghost");
     });
-    const res = await handleUpdate("ghost", jsonRequest({ isOn: true }));
+    const res = await updateRoute(jsonRequest({ isOn: true }, "PATCH"), ctx("ghost"));
     expect(res.status).toBe(404);
   });
 
@@ -143,20 +144,20 @@ describe("handleUpdate", () => {
     vi.mocked(service.updateDevice).mockImplementation(() => {
       throw new ValidationError("Bad data", { status: ["Invalid"] });
     });
-    const res = await handleUpdate("abc-123", jsonRequest({ status: "broken" }));
+    const res = await updateRoute(jsonRequest({ status: "broken" }, "PATCH"), ctx("abc-123"));
     expect(res.status).toBe(422);
   });
 
   it("returns 400 for malformed JSON", async () => {
-    const res = await handleUpdate("abc-123", malformedRequest());
+    const res = await updateRoute(malformedRequest(), ctx("abc-123"));
     expect(res.status).toBe(400);
   });
 });
 
-describe("handleDelete", () => {
+describe("DELETE /api/devices/:id", () => {
   it("returns 204 with no body", async () => {
     vi.mocked(service.deleteDevice).mockReturnValue(undefined);
-    const res = await handleDelete("abc-123");
+    const res = await deleteRoute(new Request("http://localhost"), ctx("abc-123"));
     expect(res.status).toBe(204);
     expect(res.body).toBeNull();
   });
@@ -165,7 +166,7 @@ describe("handleDelete", () => {
     vi.mocked(service.deleteDevice).mockImplementation(() => {
       throw new DeviceNotFoundError("ghost");
     });
-    const res = await handleDelete("ghost");
+    const res = await deleteRoute(new Request("http://localhost"), ctx("ghost"));
     expect(res.status).toBe(404);
   });
 });
