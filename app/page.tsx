@@ -98,7 +98,10 @@ export default function DashboardPage() {
     if (modal?.type !== "delete") return;
     setError(null);
     const res = await fetch(`/api/devices/${modal.device.id}`, { method: "DELETE" });
-    if (!res.ok) setError("Failed to delete device");
+    if (!res.ok) {
+      setError("Failed to delete device");
+      return;
+    }
     setModal(null);
     refresh();
   }
