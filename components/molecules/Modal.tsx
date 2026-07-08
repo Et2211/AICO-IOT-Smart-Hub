@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { dialogBase } from "@/styles/variants";
 
 interface ModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ export function Modal({ open, onClose, children }: ModalProps) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl backdrop:bg-black/40 backdrop:backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900"
+      className={`${dialogBase} max-w-md`}
     >
       {children}
     </dialog>

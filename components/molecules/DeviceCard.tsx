@@ -6,6 +6,7 @@ import { Badge } from "@/components/atoms/Badge";
 import { StatusDot } from "@/components/atoms/StatusDot";
 import { Button } from "@/components/atoms/Button";
 import { Toggle } from "@/components/atoms/Toggle";
+import { Card } from "@/components/atoms/Card";
 
 const DEVICE_ICONS: Record<string, string> = {
   light: "💡",
@@ -35,7 +36,7 @@ export function DeviceCard({ device, onToggle, onEdit, onDelete }: DeviceCardPro
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+    <Card>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <span className="text-2xl" role="img" aria-label={device.type}>
@@ -67,6 +68,6 @@ export function DeviceCard({ device, onToggle, onEdit, onDelete }: DeviceCardPro
           Delete
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }
