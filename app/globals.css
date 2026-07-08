@@ -24,3 +24,24 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer base {
+  h1 {
+    @apply text-xl font-bold tracking-tight text-zinc-900 dark:text-white;
+  }
+  h2 {
+    @apply text-lg font-semibold text-zinc-900 dark:text-white;
+  }
+  h3 {
+    @apply font-semibold text-zinc-900 dark:text-white;
+  }
+  p {
+    @apply text-sm text-zinc-600 dark:text-zinc-400;
+  }
+}
+
+@layer utilities {
+  .text-muted {
+    @apply text-xs text-zinc-500 dark:text-zinc-400;
+  }
+}

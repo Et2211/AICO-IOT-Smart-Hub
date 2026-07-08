@@ -36,8 +36,8 @@ export function ConfirmDialog({
       onClose={onCancel}
       className={`${dialogBase} max-w-sm`}
     >
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{title}</h2>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
+      <h2>{title}</h2>
+      <p className="mt-2">{message}</p>
       <div className="mt-6 flex gap-3">
         <Button variant="secondary" className="flex-1" onClick={onCancel}>
           Cancel

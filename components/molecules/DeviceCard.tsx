@@ -43,8 +43,8 @@ export function DeviceCard({ device, onToggle, onEdit, onDelete }: DeviceCardPro
             {DEVICE_ICONS[device.type]}
           </span>
           <div>
-            <h3 className="font-semibold text-zinc-900 dark:text-white">{device.name}</h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{device.location}</p>
+            <h3>{device.name}</h3>
+            <p className="text-muted">{device.location}</p>
           </div>
         </div>
         <Badge type={device.type} />

@@ -113,9 +113,9 @@ export default function DashboardPage() {
     <>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Devices</h2>
+          <h2>Devices</h2>
           {!loading && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-muted">
               {devices.length} device{devices.length !== 1 ? "s" : ""} &middot; {onlineCount} online
             </p>
           )}
@@ -136,7 +136,7 @@ export default function DashboardPage() {
       <Modal open={modal?.type === "create" || modal?.type === "edit"} onClose={() => setModal(null)}>
         {(modal?.type === "create" || modal?.type === "edit") && (
           <>
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+            <h2 className="mb-4">
               {modal.type === "create" ? "Add New Device" : "Edit Device"}
             </h2>
             <DeviceForm
