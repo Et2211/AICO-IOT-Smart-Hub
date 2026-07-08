@@ -20,9 +20,6 @@ export class ValidationError extends Error {
 
 export type AppError = DeviceNotFoundError | ValidationError;
 
-export function isAppError(err: unknown): err is AppError {
-  return err instanceof DeviceNotFoundError || err instanceof ValidationError;
-}
 
 export function toErrorResponse(err: unknown): Response {
   if (err instanceof SyntaxError) {

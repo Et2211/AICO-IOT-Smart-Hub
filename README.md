@@ -82,8 +82,7 @@ lib/devices/
   device.types.ts     <- TypeScript interfaces + Zod schemas
   device.repository.ts<- In-memory Map, CRUD functions
   device.service.ts   <- Business logic, input validation, typed errors
-  device.controller.ts<- HTTP parsing, error -> status code mapping
-  errors.ts           <- Error class hierarchy (DeviceNotFoundError, ValidationError)
+  errors.ts           <- Error classes + toErrorResponse HTTP adapter
 
 components/
   atoms/              <- Button, Badge, StatusDot, Input, Label, Select, Spinner
@@ -91,7 +90,7 @@ components/
   organisms/          <- DeviceList, DeviceForm
 ```
 
-**Controller/domain pattern:** Route files stay thin (one line per HTTP verb). The controller handles HTTP concerns (parsing requests, mapping errors to status codes). The service owns business logic and throws typed `Error` subclasses (`DeviceNotFoundError`, `ValidationError`). The controller catches these with `instanceof` checks rather than duck-typing. The repository owns data access.
+**Layered architecture:** Route files handle Next.js wiring (verb matching, param extraction). Each route owns its HTTP concerns inline (body parsing, error → status code via `toErrorResponse`). The service owns business logic and throws typed `Error` subclasses (`DeviceNotFoundError`, `ValidationError`), caught with `instanceof` checks rather than duck-typing. The repository owns data access.
 
 **Atomic design:** Components are organised into atoms, molecules, and organisms. Atoms are styled primitives, molecules compose atoms with behaviour, organisms compose molecules into full UI sections.
 
@@ -102,11 +101,11 @@ npm test           # run once
 npm run test:watch # watch mode
 ```
 
-36 tests cover the repository, service, and controller layers:
+36 tests cover the repository, service, and route layers:
 
 - **Repository tests**: CRUD operations against the in-memory store, with `beforeEach` reset for isolation
 - **Service tests**: business logic with mocked repository, verifying validation and error types via `instanceof`
-- **Controller tests**: HTTP status codes, JSON parsing, error mapping for every handler (201, 204, 400, 404, 422, 500)
+- **Route tests**: HTTP status codes, JSON parsing, error mapping for every handler (201, 204, 400, 404, 422, 500)
 
 ## Pre-commit hooks
 
