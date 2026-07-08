@@ -31,8 +31,11 @@ export const statusDotStyles: Record<DeviceStatus, string> = {
   offline: "bg-zinc-300 dark:bg-zinc-600",
 };
 
+export const dialogBase =
+  "w-full rounded-xl border border-zinc-200 bg-white p-6 shadow-xl backdrop:bg-black/40 backdrop:backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900";
+
 export const fieldBase =
-  "block w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors border-zinc-200 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-500";
+  "block w-full rounded-lg border px-3 py-2 text-sm text-zinc-900 outline-none transition-colors border-zinc-200 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500";
 
 export const fieldError =
   "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500";
