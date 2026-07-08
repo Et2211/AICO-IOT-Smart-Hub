@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import { Modal } from "@/components/molecules/Modal";
 import { Button } from "@/components/atoms/Button";
 import { ErrorBanner } from "@/components/atoms/ErrorBanner";
+import { AppHeader } from "@/components/organisms/AppHeader";
 
 type Modal =
   | { type: "create" }
@@ -109,55 +110,54 @@ export default function DashboardPage() {
 
   const onlineCount = devices.filter((d) => d.status === "online").length;
 
+  const subtitle = !loading
+    ? `${devices.length} device${devices.length !== 1 ? "s" : ""} · ${onlineCount} online`
+    : undefined;
+
   return (
     <>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2>Devices</h2>
-          {!loading && (
-            <p className="text-muted">
-              {devices.length} device{devices.length !== 1 ? "s" : ""} &middot; {onlineCount} online
-            </p>
-          )}
-        </div>
-        <Button onClick={() => setModal({ type: "create" })}>+ Add Device</Button>
-      </div>
-
-      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
-
-      <DeviceList
-        devices={devices}
-        loading={loading}
-        onToggle={handleToggle}
-        onEdit={(device) => setModal({ type: "edit", device })}
-        onDelete={(device) => setModal({ type: "delete", device })}
+      <AppHeader
+        subtitle={subtitle}
+        action={<Button onClick={() => setModal({ type: "create" })}>+ Add Device</Button>}
       />
 
-      <Modal open={modal?.type === "create" || modal?.type === "edit"} onClose={() => setModal(null)}>
-        {(modal?.type === "create" || modal?.type === "edit") && (
-          <>
-            <h2 className="mb-4">
-              {modal.type === "create" ? "Add New Device" : "Edit Device"}
-            </h2>
-            <DeviceForm
-              initialValues={modal.type === "edit" ? modal.device : undefined}
-              onSubmit={modal.type === "create" ? handleCreate : handleEdit}
-              onCancel={() => setModal(null)}
-              submitLabel={modal.type === "create" ? "Add Device" : "Save Changes"}
-              isEditing={modal.type === "edit"}
-            />
-          </>
-        )}
-      </Modal>
+      <main className="mx-auto w-full max-w-7xl px-6 py-8">
+        {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {modal?.type === "delete" && (
-        <ConfirmDialog
-          title="Delete Device"
-          message={`Are you sure you want to delete "${modal.device.name}"? This cannot be undone.`}
-          onConfirm={handleDelete}
-          onCancel={() => setModal(null)}
+        <DeviceList
+          devices={devices}
+          loading={loading}
+          onToggle={handleToggle}
+          onEdit={(device) => setModal({ type: "edit", device })}
+          onDelete={(device) => setModal({ type: "delete", device })}
         />
-      )}
+
+        <Modal open={modal?.type === "create" || modal?.type === "edit"} onClose={() => setModal(null)}>
+          {(modal?.type === "create" || modal?.type === "edit") && (
+            <>
+              <h2 className="mb-4">
+                {modal.type === "create" ? "Add New Device" : "Edit Device"}
+              </h2>
+              <DeviceForm
+                initialValues={modal.type === "edit" ? modal.device : undefined}
+                onSubmit={modal.type === "create" ? handleCreate : handleEdit}
+                onCancel={() => setModal(null)}
+                submitLabel={modal.type === "create" ? "Add Device" : "Save Changes"}
+                isEditing={modal.type === "edit"}
+              />
+            </>
+          )}
+        </Modal>
+
+        {modal?.type === "delete" && (
+          <ConfirmDialog
+            title="Delete Device"
+            message={`Are you sure you want to delete "${modal.device.name}"? This cannot be undone.`}
+            onConfirm={handleDelete}
+            onCancel={() => setModal(null)}
+          />
+        )}
+      </main>
     </>
   );
 }
