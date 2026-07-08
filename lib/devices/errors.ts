@@ -20,6 +20,7 @@ export class ValidationError extends Error {
 
 export type AppError = DeviceNotFoundError | ValidationError;
 
+
 export function toErrorResponse(err: unknown): Response {
   if (err instanceof SyntaxError) {
     return Response.json({ error: "Malformed JSON in request body" }, { status: 400 });
